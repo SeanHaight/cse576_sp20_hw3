@@ -5,6 +5,7 @@
 #include "matrix.h"
 #include "neural.h"
 
+
 // Calculate a linear activation (i.e. no activation).
 //  f(x) = x
 // Parameters:
@@ -13,8 +14,6 @@
 //  A Matrix containing the activated output.
 Matrix forward_linear(const Matrix &matrix) {
   Matrix activated = matrix;
-  // TODO: Implement forward activation.
-  NOT_IMPLEMENTED();
   return activated;
 }
 
@@ -28,7 +27,6 @@ Matrix backward_linear(const Matrix &out, const Matrix &prev_grad) {
   assert_same_size(prev_grad, out);
   Matrix grad = prev_grad;
   // TODO: Implement activation backward pass.
-  NOT_IMPLEMENTED();
   return grad;
 }
 
@@ -39,9 +37,11 @@ Matrix backward_linear(const Matrix &out, const Matrix &prev_grad) {
 //  A Matrix containing the activated output.
 Matrix forward_logistic(const Matrix &matrix) {
   Matrix activated = matrix;
+  for (int i = 0; i < matrix.rows; i++) for(int j = 0; j < matrix.cols; j++){
+    activated(i,j) = 1/(1 + exp(-matrix(i,j)));
+  }
   // TODO: Implement forward activation.
   // Hint: look at matrix.h, it might save you some typing.
-  NOT_IMPLEMENTED();
   return activated;
 }
 
@@ -54,8 +54,10 @@ Matrix forward_logistic(const Matrix &matrix) {
 Matrix backward_logistic(const Matrix &out, const Matrix &prev_grad) {
   assert_same_size(prev_grad, out);
   Matrix grad = prev_grad;
-  // TODO: Implement activation backward pass.
-  NOT_IMPLEMENTED();
+  for (int i = 0; i < out.rows; i++) for(int j = 0; j < out.cols; j++){
+    double g = out(i,j);
+    grad(i,j) = (1 -g)*g*prev_grad(i,j);
+  }
   return grad;
 }
 
@@ -66,8 +68,9 @@ Matrix backward_logistic(const Matrix &out, const Matrix &prev_grad) {
 //  A Matrix containing the activated output.
 Matrix forward_tanh(const Matrix &matrix) {
   Matrix activated = matrix;
-  // TODO: Implement forward activation.
-  NOT_IMPLEMENTED();
+  for (int i = 0; i < matrix.rows; i++) for(int j = 0; j < matrix.cols; j++){
+    activated(i,j) = tanh(matrix(i,j));
+  }
   return activated;
 }
 
@@ -80,8 +83,10 @@ Matrix forward_tanh(const Matrix &matrix) {
 Matrix backward_tanh(const Matrix &out, const Matrix &prev_grad) {
   assert_same_size(prev_grad, out);
   Matrix grad = prev_grad;
-  // TODO: Implement activation backward pass.
-  NOT_IMPLEMENTED();
+  for (int i = 0; i < out.rows; i++) for(int j = 0; j < out.cols; j++){
+    double g = out(i,j);
+    grad(i,j) = (1 -g*g)*prev_grad(i,j);
+  }
   return grad;
 }
 
@@ -93,7 +98,9 @@ Matrix backward_tanh(const Matrix &out, const Matrix &prev_grad) {
 Matrix forward_relu(const Matrix &matrix) {
   // TODO: Implement forward activation.
   Matrix activated = matrix;
-  NOT_IMPLEMENTED();
+  for (int i = 0; i < matrix.rows; i++) for(int j = 0; j < matrix.cols; j++){
+    activated(i,j) = max(static_cast<double>(0),matrix(i,j));
+  }
   return activated;
 }
 
@@ -106,8 +113,22 @@ Matrix forward_relu(const Matrix &matrix) {
 Matrix backward_relu(const Matrix &out, const Matrix &prev_grad) {
   assert_same_size(prev_grad, out);
   Matrix grad = prev_grad;
-  // TODO: Implement activation backward pass.
-  NOT_IMPLEMENTED();
+  for (int i = 0; i < out.rows; i++) for(int j = 0; j < out.cols; j++){
+    bool b = (out(i,j) < 0);
+    int g = b;
+
+    grad(i,j) = (1 -g)*prev_grad(i,j);
+    if(i == 8 && j == 52){
+      printf("%d",b);
+      printf("out(i,j) is %lf", out(i,j));
+      printf("\n");
+      printf("g is %d",g);
+      printf("\n");
+      printf("prev_grad(i,j) is %lf", prev_grad(i,j));
+      printf("\n");
+      printf("grad(i,j) is %lf", grad(i,j));
+    }
+  }
   return grad;
 }
 
@@ -118,8 +139,13 @@ Matrix backward_relu(const Matrix &out, const Matrix &prev_grad) {
 // Returns:
 Matrix forward_lrelu(const Matrix &matrix) {
   Matrix activated = matrix;
-  // TODO: Implement forward activation.
-  NOT_IMPLEMENTED();
+  for (int i = 0; i < matrix.rows; i++) for(int j = 0; j < matrix.cols; j++){
+    if (matrix(i,j) > 0){
+      activated(i,j) = matrix(i,j);
+    } else {
+      activated(i,j) = .01*matrix(i,j);
+    }
+  }
   return activated;
 }
 
@@ -132,8 +158,10 @@ Matrix forward_lrelu(const Matrix &matrix) {
 Matrix backward_lrelu(const Matrix &out, const Matrix &prev_grad) {
   assert_same_size(prev_grad, out);
   Matrix grad = prev_grad;
-  // TODO: Implement activation backward pass.
-  NOT_IMPLEMENTED();
+  for (int i = 0; i < out.rows; i++) for(int j = 0; j < out.cols; j++){
+    int g = (out(i,j) < 0);
+    grad(i,j) = (g*.01 + (1 - g))*prev_grad(i,j);
+  }
   return grad;
 }
 
@@ -142,9 +170,18 @@ Matrix backward_lrelu(const Matrix &out, const Matrix &prev_grad) {
 //  Matrix &matrix: the input non-activated output of the layer.
 // Returns:
 Matrix forward_softmax(const Matrix &matrix) {
+  Matrix exponential = matrix;
   Matrix activated = matrix;
-  // TODO: Implement forward activation.
-  NOT_IMPLEMENTED();
+  for (int i = 0; i < matrix.rows; i++){
+    double denom = 0;
+    for(int j = 0; j < matrix.cols; j++){
+      exponential(i,j) = exp(matrix(i,j));
+      denom = denom + exponential(i,j);
+    }
+    for(int j = 0; j < matrix.cols; j++){
+      activated(i,j) = exponential(i,j)/denom;
+    }
+  }
   return activated;
 }
 
