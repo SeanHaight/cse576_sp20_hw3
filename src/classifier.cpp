@@ -31,7 +31,7 @@ void debug_print(const char *name, const Matrix &m, int max_rows = 2, int max_co
 Matrix forward_weights(const Layer &l, const Matrix &in) {
   Matrix output;
   // TODO: Multiply input by weights and return the result
-  NOT_IMPLEMENTED();
+  output = in*l.w;
 
   assert(output.rows == in.rows);
   assert(output.cols == l.w.cols);
@@ -43,9 +43,7 @@ Matrix forward_weights(const Layer &l, const Matrix &in) {
 // returns: matrix that is output of the layer after activation
 Matrix forward_activation(const Layer &l, const Matrix &out1) {
   Matrix output;
-  // TODO: Apply activation function and return
-  // Hint: Use forward_activate_matrix in activations.cpp.
-  NOT_IMPLEMENTED();
+  output = forward_activate_matrix(out1,l.activation);
 
   return output;
 }
@@ -80,7 +78,10 @@ Matrix backward_xw(const Layer &l, const Matrix &grad_y) {
   //           = dL/dy * df(xw)/d(xw)
   //           = dL/dy * f'(xw)
   // Hint: Use backward_activate_matrix in activations.cpp.
-  NOT_IMPLEMENTED();
+
+
+  Matrix b = backward_activate_matrix(l.out2, grad_y, l.activation );
+  grad_xw = b;
 
   return grad_xw;
 }
@@ -93,8 +94,7 @@ Matrix backward_w(const Layer &l) {
   // Hint:
   //  dL/dw = d(xw)/dw * dL/d(xw) = x * dL/d(xw)
   Matrix grad_w;
-  NOT_IMPLEMENTED();
-
+  grad_w = l.in.transpose()*l.grad_out1;
   assert_same_size(grad_w, l.w);
   return grad_w;
 }
@@ -105,8 +105,7 @@ Matrix backward_x(const Layer &l) {
   // Get the relevant quantities from the layer (see forward() and backward() function for reference)
   // TODO (1.4.3): finally, calculate dL/dx and return it
   Matrix grad_x;
-  NOT_IMPLEMENTED();
-
+  grad_x = l.grad_out1*l.w.transpose();
   assert_same_size(grad_x, l.in);
   return grad_x;
 }
@@ -129,11 +128,11 @@ Matrix Layer::backward(const Matrix &grad_y) {
 void update_layer(Layer &l, double rate, double momentum, double decay) {
   // TODO: calculate the weight updates
   // Hint: Calculate Δw_t = dL/dw_t - λw_t + mΔw_{t-1} and save it to l.v
-  NOT_IMPLEMENTED();
+  l.v = l.grad_w - decay*l.w + momentum*l.v;
 
   // TODO: update the weights and save to l.w.
   // Hint: w_{t+1} = w_t + ηΔw_t
-  NOT_IMPLEMENTED();
+  l.w = l.w + rate*l.v;
 }
 
 // DO NOT MODIFY.
@@ -304,12 +303,11 @@ void Model::train(const Data &data, int batch_size, int iters, double rate, doub
 
     double loss = this->compute_loss(batch.y, y);
     double accu = this->accuracy2(batch, y);
-    
+
     printf("Iteration: %6d: Loss: %12.6lf   Batch Accuracy: %8.3lf \n", iter, loss, accu);
-    
     // partial derivative of loss dL/dprob
     Matrix dLoss=this->loss_derivative(batch.y, y)/batch_size;
-    
+
     this->backward(dLoss);
     this->update_weights(rate, momentum, decay);
   }

@@ -118,16 +118,6 @@ Matrix backward_relu(const Matrix &out, const Matrix &prev_grad) {
     int g = b;
 
     grad(i,j) = (1 -g)*prev_grad(i,j);
-    if(i == 8 && j == 52){
-      printf("%d",b);
-      printf("out(i,j) is %lf", out(i,j));
-      printf("\n");
-      printf("g is %d",g);
-      printf("\n");
-      printf("prev_grad(i,j) is %lf", prev_grad(i,j));
-      printf("\n");
-      printf("grad(i,j) is %lf", grad(i,j));
-    }
   }
   return grad;
 }
@@ -198,8 +188,11 @@ Matrix softmax_jacobian(const Matrix &out_row) {
   // Do whatever you want here, but here's some structure to get you started.
   for (int j = 0; j < out_row.cols; j++) {
     for (int k = 0; k < out_row.cols; k++) {
-      NOT_IMPLEMENTED();
-      // jacobian(j, k) = ...
+      if(j == k){
+        jacobian(j,k) = out_row(0,j) - out_row(0,j)*out_row(0,j);
+      } else{
+        jacobian(j,k) = -out_row(0,j)*out_row(0,k);
+      }
     }
   }
   assert(jacobian.rows == out_row.cols);
@@ -210,15 +203,16 @@ Matrix softmax_jacobian(const Matrix &out_row) {
 // Computes the backwards pass for the softmax function.
 Matrix backward_softmax(const Matrix &out, const Matrix &prev_grad) {
   assert_same_size(prev_grad, out);
-  // TODO: Implement activation backward pass.
   Matrix grad = prev_grad;
   // Multiply previous gradient with Jacobian.
   for (int i = 0; i < out.rows; i++) {
     Matrix jacobian = softmax_jacobian(out.get_row(i));
     Matrix row_grad = prev_grad.get_row(i);
-    // TODO: Implement the softmax backward pass.
-    NOT_IMPLEMENTED();
-    // grad(i, j) = ...
+    double S = 0;
+    Matrix prod = row_grad*jacobian;
+    for (int j = 0; j < out.cols; j++){
+      grad(i,j) = prod(0,j);
+    }
   }
   return grad;
 }
@@ -252,7 +246,7 @@ Matrix forward_activate_matrix(const Matrix &matrix, Activation a) {
 // const Matrix& out: an activated layer output
 // Activation a: activation function for a layer
 // Matrix& grad: before activation gradient (initial layer gradient)
-// returns: Matrix that is after applying the activation gradien
+// returns: Matrix that is after applying the activation gradient
 Matrix backward_activate_matrix(const Matrix &out, const Matrix &grad, Activation a) {
   if (a == LINEAR) {
     return backward_linear(out, grad);
