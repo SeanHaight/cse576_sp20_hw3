@@ -251,8 +251,6 @@ double l1_loss(const Matrix &y, const Matrix &p) {
   assert_same_size(y, p);
   // TODO
 
-  NOT_IMPLEMENTED();
-
   return 0;
 }
 
@@ -304,7 +302,7 @@ void Model::train(const Data &data, int batch_size, int iters, double rate, doub
     double loss = this->compute_loss(batch.y, y);
     double accu = this->accuracy2(batch, y);
 
-    printf("Iteration: %6d: Loss: %12.6lf   Batch Accuracy: %8.3lf \n", iter, loss, accu);
+    //printf("Iteration: %6d: Loss: %12.6lf   Batch Accuracy: %8.3lf \n", iter, loss, accu);
     // partial derivative of loss dL/dprob
     Matrix dLoss=this->loss_derivative(batch.y, y)/batch_size;
 
